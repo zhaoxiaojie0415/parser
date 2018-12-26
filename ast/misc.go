@@ -681,6 +681,40 @@ func (n *DropUserStmt) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
+// CreateBindingStmt creates sql binding hint.
+type CreateBindingStmt struct {
+	stmtNode
+
+	IsGlobal  bool
+	OriginSel StmtNode
+	HintedSel StmtNode
+}
+
+func (n *CreateBindingStmt) Restore(ctx *RestoreCtx) error {
+	return errors.New("Not implemented")
+}
+
+func (n *CreateBindingStmt) Accept(v Visitor) (Node, bool) {
+	newNode, skipChildren := v.Enter(n)
+	if skipChildren {
+		return v.Leave(newNode)
+	}
+	n = newNode.(*CreateBindingStmt)
+
+	selnode, ok := n.OriginSel.Accept(v)
+	if !ok {
+		return n, false
+	}
+	n.OriginSel = selnode.(*SelectStmt)
+
+	hintedSelnode, ok := n.HintedSel.Accept(v)
+	if !ok {
+		return n, false
+	}
+	n.HintedSel = hintedSelnode.(*SelectStmt)
+	return v.Leave(n)
+}
+
 // DoStmt is the struct for DO statement.
 type DoStmt struct {
 	stmtNode
