@@ -700,18 +700,42 @@ func (n *CreateBindingStmt) Accept(v Visitor) (Node, bool) {
 		return v.Leave(newNode)
 	}
 	n = newNode.(*CreateBindingStmt)
-
 	selnode, ok := n.OriginSel.Accept(v)
 	if !ok {
 		return n, false
 	}
 	n.OriginSel = selnode.(*SelectStmt)
-
 	hintedSelnode, ok := n.HintedSel.Accept(v)
 	if !ok {
 		return n, false
 	}
 	n.HintedSel = hintedSelnode.(*SelectStmt)
+	return v.Leave(n)
+}
+
+// CreateBindingStmt creates sql binding hint.
+type DropBindingStmt struct {
+	stmtNode
+
+	IsGlobal  bool
+	OriginSel StmtNode
+}
+
+func (n *DropBindingStmt) Restore(ctx *RestoreCtx) error {
+	return errors.New("Not implemented")
+}
+
+func (n *DropBindingStmt) Accept(v Visitor) (Node, bool) {
+	newNode, skipChildren := v.Enter(n)
+	if skipChildren {
+		return v.Leave(newNode)
+	}
+	n = newNode.(*DropBindingStmt)
+	selnode, ok := n.OriginSel.Accept(v)
+	if !ok {
+		return n, false
+	}
+	n.OriginSel = selnode.(*SelectStmt)
 	return v.Leave(n)
 }
 

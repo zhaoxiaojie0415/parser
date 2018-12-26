@@ -2289,6 +2289,9 @@ func (s *testParserSuite) TestTrace(c *C) {
 
 func (s *testParserSuite) TestBinding(c *C) {
 	table := []testCase{
+		{"create global binding for select * from t using select * from t use index(a)", true, ""},
+		{"create session binding for select * from t using select * from t use index(a)", true, ""},
+		{"create global binding for select * from t using select * from t use index(a)", true, ""},
 		{"create session binding for select * from t using select * from t use index(a)", true, ""},
 	}
 	s.RunTest(c, table)

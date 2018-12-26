@@ -581,6 +581,7 @@ import (
 	DropTableStmt			"DROP TABLE statement"
 	DropUserStmt			"DROP USER"
 	DropViewStmt			"DROP VIEW statement"
+	DropBindingStmt		    "DROP BINDING  statement"
 	DeallocateStmt			"Deallocate prepared statement"
 	DeleteFromStmt			"DELETE FROM statement"
 	EmptyStmt			"empty statement"
@@ -6269,6 +6270,7 @@ Statement:
 |	DropViewStmt
 |	DropUserStmt
 |	DropStatsStmt
+|	DropBindingStmt
 |	FlushStmt
 |	GrantStmt
 |	InsertIntoStmt
@@ -7187,53 +7189,6 @@ CreateUserStmt:
 	}
 
 
-/*******************************************************************
- *
- *  Create Binding Statement
- *
- *  Example:
- *      CREATE GLOBAL BINDING FOR select Col1,Col2 from table USING select Col1,Col2 from table use index(Col1)
- *******************************************************************/
-CreateBindingStmt:
-    "CREATE" "GLOBAL" "BINDING" "FOR" SelectStmt "USING" SelectStmt
-    {
-		startOffset := parser.startOffset(&yyS[yypt-2])
-        endOffset := parser.startOffset(&yyS[yypt-1])
-        selStmt := $5.(*ast.SelectStmt)
-        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:endOffset]))
-
-		startOffset = parser.startOffset(&yyS[yypt])
-		hintedSelStmt := $7.(*ast.SelectStmt)
-		hintedSelStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
-
-		x := &ast.CreateBindingStmt {
-			OriginSel:  selStmt,
-			HintedSel:  hintedSelStmt,
-			IsGlobal:   true,
-		}
-
-		$$ = x
-	}
-|	"CREATE" "SESSION" "BINDING" "FOR" SelectStmt "USING" SelectStmt
-        {
-    		startOffset := parser.startOffset(&yyS[yypt-2])
-            endOffset := parser.startOffset(&yyS[yypt-1])
-            selStmt := $5.(*ast.SelectStmt)
-            selStmt.SetText(strings.TrimSpace(parser.src[startOffset:endOffset]))
-
-    		startOffset = parser.startOffset(&yyS[yypt])
-    		hintedSelStmt := $7.(*ast.SelectStmt)
-    		hintedSelStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
-
-    		x := &ast.CreateBindingStmt {
-    			OriginSel:  selStmt,
-    			HintedSel:  hintedSelStmt,
-    			IsGlobal:   false,
-    		}
-
-    		$$ = x
-    	}
-
 /* See http://dev.mysql.com/doc/refman/5.7/en/alter-user.html */
 AlterUserStmt:
 	"ALTER" "USER" IfExists UserSpecList
@@ -7317,6 +7272,88 @@ HashString:
 	{
 		$$ = $1
 	}
+
+/*******************************************************************
+ *
+ *  Create Binding Statement
+ *
+ *  Example:
+ *      CREATE GLOBAL BINDING FOR select Col1,Col2 from table USING select Col1,Col2 from table use index(Col1)
+ *******************************************************************/
+CreateBindingStmt:
+    "CREATE" "GLOBAL" "BINDING" "FOR" SelectStmt "USING" SelectStmt
+    {
+		startOffset := parser.startOffset(&yyS[yypt-2])
+        endOffset := parser.startOffset(&yyS[yypt-1])
+        selStmt := $5.(*ast.SelectStmt)
+        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:endOffset]))
+
+		startOffset = parser.startOffset(&yyS[yypt])
+		hintedSelStmt := $7.(*ast.SelectStmt)
+		hintedSelStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
+
+		x := &ast.CreateBindingStmt {
+			OriginSel:  selStmt,
+			HintedSel:  hintedSelStmt,
+			IsGlobal:   true,
+		}
+
+		$$ = x
+	}
+|	"CREATE" "SESSION" "BINDING" "FOR" SelectStmt "USING" SelectStmt
+    {
+    	startOffset := parser.startOffset(&yyS[yypt-2])
+        endOffset := parser.startOffset(&yyS[yypt-1])
+        selStmt := $5.(*ast.SelectStmt)
+        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:endOffset]))
+
+        startOffset = parser.startOffset(&yyS[yypt])
+    	hintedSelStmt := $7.(*ast.SelectStmt)
+    	hintedSelStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
+
+    	x := &ast.CreateBindingStmt {
+    		OriginSel:  selStmt,
+    		HintedSel:  hintedSelStmt,
+    		IsGlobal:   false,
+    	}
+
+    	$$ = x
+    }
+
+/*******************************************************************
+ *
+ *  Drop Binding Statement
+ *
+ *  Example:
+ *      DROP GLOBAL BINDING FOR select Col1,Col2 from table
+ *******************************************************************/
+DropBindingStmt:
+    "DROP" "GLOBAL" "BINDING" "FOR" SelectStmt
+    {
+		startOffset := parser.startOffset(&yyS[yypt])
+		selStmt := $5.(*ast.SelectStmt)
+		selStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
+
+		x := &ast.DropBindingStmt {
+			OriginSel:  selStmt,
+			IsGlobal:   true,
+		}
+
+		$$ = x
+	}
+|	"DROP" "SESSION" "BINDING" "FOR" SelectStmt
+    {
+    	startOffset := parser.startOffset(&yyS[yypt])
+        selStmt := $5.(*ast.SelectStmt)
+        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
+
+        x := &ast.DropBindingStmt {
+            OriginSel:  selStmt,
+            IsGlobal:   false,
+        }
+
+        $$ = x
+    }
 
 /*************************************************************************************
  * Grant statement
