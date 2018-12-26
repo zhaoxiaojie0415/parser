@@ -2293,6 +2293,8 @@ func (s *testParserSuite) TestBinding(c *C) {
 		{"create session binding for select * from t using select * from t use index(a)", true, ""},
 		{"create global binding for select * from t using select * from t use index(a)", true, ""},
 		{"create session binding for select * from t using select * from t use index(a)", true, ""},
+		{"show global bindings", true, ""},
+		{"show session bindings", true, ""},
 	}
 	s.RunTest(c, table)
 

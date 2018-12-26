@@ -424,6 +424,7 @@ import (
 	variables	"VARIABLES"
 	view		"VIEW"
 	binding		"BINDING"
+	bindings		"BINDINGS"
 	warnings	"WARNINGS"
 	identSQLErrors	"ERRORS"
 	week		"WEEK"
@@ -574,6 +575,7 @@ import (
 	CreateDatabaseStmt		"Create Database Statement"
 	CreateIndexStmt			"CREATE INDEX statement"
 	CreateBindingStmt		"CREATE BINDING  statement"
+	ShowBindingsStmt		    "SHOW BINDINGS  statement"
 	DoStmt				"Do statement"
 	DropDatabaseStmt		"DROP DATABASE statement"
 	DropIndexStmt			"DROP INDEX statement"
@@ -2990,7 +2992,7 @@ UnReservedKeyword:
 | "COLLATION" | "COMMENT" | "AVG_ROW_LENGTH" | "CONNECTION" | "CHECKSUM" | "COMPRESSION" | "KEY_BLOCK_SIZE" | "MASTER" | "MAX_ROWS"
 | "MIN_ROWS" | "NATIONAL" | "ROW_FORMAT" | "QUARTER" | "GRANTS" | "TRIGGERS" | "DELAY_KEY_WRITE" | "ISOLATION" | "JSON"
 | "REPEATABLE" | "RESPECT" | "COMMITTED" | "UNCOMMITTED" | "ONLY" | "SERIALIZABLE" | "LEVEL" | "VARIABLES" | "SQL_CACHE" | "INDEXES" | "PROCESSLIST"
-| "SQL_NO_CACHE" | "DISABLE"  | "ENABLE" | "REVERSE" | "PRIVILEGES" | "NO" | "BINLOG" | "FUNCTION" | "VIEW" | "BINDING" | "MODIFY" | "EVENTS" | "PARTITIONS"
+| "SQL_NO_CACHE" | "DISABLE"  | "ENABLE" | "REVERSE" | "PRIVILEGES" | "NO" | "BINLOG" | "FUNCTION" | "VIEW" | "BINDING" | "BINDINGS" | "MODIFY" | "EVENTS" | "PARTITIONS"
 | "NONE" | "NULLS" | "SUPER" | "EXCLUSIVE" | "STATS_PERSISTENT" | "ROW_COUNT" | "COALESCE" | "MONTH" | "PROCESS" | "PROFILES"
 | "MICROSECOND" | "MINUTE" | "PLUGINS" | "PRECEDING" | "QUERY" | "QUERIES" | "SECOND" | "SEPARATOR" | "SHARE" | "SHARED" | "SLOW" | "MAX_CONNECTIONS_PER_HOUR" | "MAX_QUERIES_PER_HOUR" | "MAX_UPDATES_PER_HOUR"
 | "MAX_USER_CONNECTIONS" | "REPLICATION" | "CLIENT" | "SLAVE" | "RELOAD" | "TEMPORARY" | "ROUTINE" | "EVENT" | "ALGORITHM" | "DEFINER" | "INVOKER" | "MERGE" | "TEMPTABLE" | "UNDEFINED" | "SECURITY" | "CASCADED" | "RECOVER"
@@ -6263,6 +6265,7 @@ Statement:
 |	CreateViewStmt
 |	CreateUserStmt
 |	CreateBindingStmt
+|	ShowBindingsStmt
 |	DoStmt
 |	DropDatabaseStmt
 |	DropIndexStmt
@@ -7314,6 +7317,24 @@ CreateBindingStmt:
     	x := &ast.CreateBindingStmt {
     		OriginSel:  selStmt,
     		HintedSel:  hintedSelStmt,
+    		IsGlobal:   false,
+    	}
+
+    	$$ = x
+    }
+
+ShowBindingsStmt:
+    "SHOW" "GLOBAL" "BINDINGS"
+    {
+		x := &ast.ShowBindingsStmt {
+			IsGlobal:   true,
+		}
+
+		$$ = x
+	}
+|	"SHOW" "SESSION" "BINDINGS"
+    {
+    	x := &ast.ShowBindingsStmt {
     		IsGlobal:   false,
     	}
 

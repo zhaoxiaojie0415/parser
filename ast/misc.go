@@ -713,7 +713,29 @@ func (n *CreateBindingStmt) Accept(v Visitor) (Node, bool) {
 	return v.Leave(n)
 }
 
-// CreateBindingStmt creates sql binding hint.
+// ShowBindingStmt creates sql binding hint.
+type ShowBindingsStmt struct {
+	stmtNode
+
+	IsGlobal  bool
+	OriginSel StmtNode
+	HintedSel StmtNode
+}
+
+func (n *ShowBindingsStmt) Restore(ctx *RestoreCtx) error {
+	return errors.New("Not implemented")
+}
+
+func (n *ShowBindingsStmt) Accept(v Visitor) (Node, bool) {
+	newNode, skipChildren := v.Enter(n)
+	if skipChildren {
+		return v.Leave(newNode)
+	}
+	n = newNode.(*ShowBindingsStmt)
+	return v.Leave(n)
+}
+
+// DropBindingStmt creates sql binding hint.
 type DropBindingStmt struct {
 	stmtNode
 
