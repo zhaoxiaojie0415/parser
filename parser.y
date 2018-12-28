@@ -575,7 +575,6 @@ import (
 	CreateDatabaseStmt		"Create Database Statement"
 	CreateIndexStmt			"CREATE INDEX statement"
 	CreateBindingStmt		"CREATE BINDING  statement"
-	ShowBindingsStmt		    "SHOW BINDINGS  statement"
 	DoStmt				"Do statement"
 	DropDatabaseStmt		"DROP DATABASE statement"
 	DropIndexStmt			"DROP INDEX statement"
@@ -6089,6 +6088,13 @@ ShowTargetFilterable:
 			GlobalScope: $1.(bool),
 		}
 	}
+|	GlobalScope "BINDINGS"
+	{
+		$$ = &ast.ShowStmt{
+			Tp: ast.ShowBindings,
+			GlobalScope: $1.(bool),
+		}
+	}
 |	"COLLATION"
 	{
 		$$ = &ast.ShowStmt{
@@ -6265,7 +6271,6 @@ Statement:
 |	CreateViewStmt
 |	CreateUserStmt
 |	CreateBindingStmt
-|	ShowBindingsStmt
 |	DoStmt
 |	DropDatabaseStmt
 |	DropIndexStmt
@@ -7284,7 +7289,7 @@ HashString:
  *      CREATE GLOBAL BINDING FOR select Col1,Col2 from table USING select Col1,Col2 from table use index(Col1)
  *******************************************************************/
 CreateBindingStmt:
-    "CREATE" "GLOBAL" "BINDING" "FOR" SelectStmt "USING" SelectStmt
+    "CREATE" GlobalScope "BINDING" "FOR" SelectStmt "USING" SelectStmt
     {
 		startOffset := parser.startOffset(&yyS[yypt-2])
         endOffset := parser.startOffset(&yyS[yypt-1])
@@ -7298,49 +7303,11 @@ CreateBindingStmt:
 		x := &ast.CreateBindingStmt {
 			OriginSel:  selStmt,
 			HintedSel:  hintedSelStmt,
-			IsGlobal:   true,
+			GlobalScope: $2.(bool),
 		}
 
 		$$ = x
 	}
-|	"CREATE" "SESSION" "BINDING" "FOR" SelectStmt "USING" SelectStmt
-    {
-    	startOffset := parser.startOffset(&yyS[yypt-2])
-        endOffset := parser.startOffset(&yyS[yypt-1])
-        selStmt := $5.(*ast.SelectStmt)
-        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:endOffset]))
-
-        startOffset = parser.startOffset(&yyS[yypt])
-    	hintedSelStmt := $7.(*ast.SelectStmt)
-    	hintedSelStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
-
-    	x := &ast.CreateBindingStmt {
-    		OriginSel:  selStmt,
-    		HintedSel:  hintedSelStmt,
-    		IsGlobal:   false,
-    	}
-
-    	$$ = x
-    }
-
-ShowBindingsStmt:
-    "SHOW" "GLOBAL" "BINDINGS"
-    {
-		x := &ast.ShowBindingsStmt {
-			IsGlobal:   true,
-		}
-
-		$$ = x
-	}
-|	"SHOW" "SESSION" "BINDINGS"
-    {
-    	x := &ast.ShowBindingsStmt {
-    		IsGlobal:   false,
-    	}
-
-    	$$ = x
-    }
-
 /*******************************************************************
  *
  *  Drop Binding Statement
@@ -7349,7 +7316,7 @@ ShowBindingsStmt:
  *      DROP GLOBAL BINDING FOR select Col1,Col2 from table
  *******************************************************************/
 DropBindingStmt:
-    "DROP" "GLOBAL" "BINDING" "FOR" SelectStmt
+    "DROP" GlobalScope "BINDING" "FOR" SelectStmt
     {
 		startOffset := parser.startOffset(&yyS[yypt])
 		selStmt := $5.(*ast.SelectStmt)
@@ -7357,24 +7324,11 @@ DropBindingStmt:
 
 		x := &ast.DropBindingStmt {
 			OriginSel:  selStmt,
-			IsGlobal:   true,
+			GlobalScope: $2.(bool),
 		}
 
 		$$ = x
 	}
-|	"DROP" "SESSION" "BINDING" "FOR" SelectStmt
-    {
-    	startOffset := parser.startOffset(&yyS[yypt])
-        selStmt := $5.(*ast.SelectStmt)
-        selStmt.SetText(strings.TrimSpace(parser.src[startOffset:]))
-
-        x := &ast.DropBindingStmt {
-            OriginSel:  selStmt,
-            IsGlobal:   false,
-        }
-
-        $$ = x
-    }
 
 /*************************************************************************************
  * Grant statement

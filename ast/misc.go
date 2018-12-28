@@ -685,9 +685,9 @@ func (n *DropUserStmt) Accept(v Visitor) (Node, bool) {
 type CreateBindingStmt struct {
 	stmtNode
 
-	IsGlobal  bool
-	OriginSel StmtNode
-	HintedSel StmtNode
+	GlobalScope bool
+	OriginSel   StmtNode
+	HintedSel   StmtNode
 }
 
 func (n *CreateBindingStmt) Restore(ctx *RestoreCtx) error {
@@ -717,9 +717,7 @@ func (n *CreateBindingStmt) Accept(v Visitor) (Node, bool) {
 type ShowBindingsStmt struct {
 	stmtNode
 
-	IsGlobal  bool
-	OriginSel StmtNode
-	HintedSel StmtNode
+	GlobalScope bool
 }
 
 func (n *ShowBindingsStmt) Restore(ctx *RestoreCtx) error {
@@ -739,8 +737,8 @@ func (n *ShowBindingsStmt) Accept(v Visitor) (Node, bool) {
 type DropBindingStmt struct {
 	stmtNode
 
-	IsGlobal  bool
-	OriginSel StmtNode
+	GlobalScope bool
+	OriginSel   StmtNode
 }
 
 func (n *DropBindingStmt) Restore(ctx *RestoreCtx) error {
