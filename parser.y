@@ -424,7 +424,7 @@ import (
 	variables	"VARIABLES"
 	view		"VIEW"
 	binding		"BINDING"
-	bindings		"BINDINGS"
+	bindings	"BINDINGS"
 	warnings	"WARNINGS"
 	identSQLErrors	"ERRORS"
 	week		"WEEK"
@@ -7195,7 +7195,6 @@ CreateUserStmt:
 			Specs: $4.([]*ast.UserSpec),
 		}
 	}
-
 
 /* See http://dev.mysql.com/doc/refman/5.7/en/alter-user.html */
 AlterUserStmt:
