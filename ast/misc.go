@@ -43,6 +43,9 @@ var (
 	_ StmtNode = &UseStmt{}
 	_ StmtNode = &FlushStmt{}
 	_ StmtNode = &KillStmt{}
+	_ StmtNode = &CreateBindingStmt{}
+	_ StmtNode = &DropBindingStmt{}
+	_ StmtNode = &DeallocateStmt{}
 
 	_ Node = &PrivElem{}
 	_ Node = &VariableAssignment{}
@@ -710,26 +713,6 @@ func (n *CreateBindingStmt) Accept(v Visitor) (Node, bool) {
 		return n, false
 	}
 	n.HintedSel = hintedSelnode.(*SelectStmt)
-	return v.Leave(n)
-}
-
-// ShowBindingStmt creates sql binding hint.
-type ShowBindingsStmt struct {
-	stmtNode
-
-	GlobalScope bool
-}
-
-func (n *ShowBindingsStmt) Restore(ctx *RestoreCtx) error {
-	return errors.New("Not implemented")
-}
-
-func (n *ShowBindingsStmt) Accept(v Visitor) (Node, bool) {
-	newNode, skipChildren := v.Enter(n)
-	if skipChildren {
-		return v.Leave(newNode)
-	}
-	n = newNode.(*ShowBindingsStmt)
 	return v.Leave(n)
 }
 
