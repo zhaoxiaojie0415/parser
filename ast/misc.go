@@ -45,7 +45,6 @@ var (
 	_ StmtNode = &KillStmt{}
 	_ StmtNode = &CreateBindingStmt{}
 	_ StmtNode = &DropBindingStmt{}
-	_ StmtNode = &DeallocateStmt{}
 
 	_ Node = &PrivElem{}
 	_ Node = &VariableAssignment{}
