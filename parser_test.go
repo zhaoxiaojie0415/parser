@@ -2305,7 +2305,7 @@ func (s *testParserSuite) TestBinding(c *C) {
 	c.Assert(ok, IsTrue)
 	c.Assert(v.OriginSel.Text(), Equals, "select * from t")
 	c.Assert(v.HintedSel.Text(), Equals, "select * from t use index(a)")
-	c.Assert(v.IsGlobal, IsTrue)
+	c.Assert(v.GlobalScope, IsTrue)
 }
 
 func (s *testParserSuite) TestView(c *C) {
