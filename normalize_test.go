@@ -1,62 +1,46 @@
-package parser
+package parser_test
 
 import (
-	"bytes"
-	"crypto/md5"
-	"reflect"
-	"sync"
-	"unicode"
-	"unsafe"
+	"github.com/pingcap/parser"
+	"testing"
 )
 
-// Digest generates a digest(or sql-id) for a SQL.
-// the purpose of digest is to identity a group of similar SQLs, then we can do other logic base on it.
-func Digest(sql string) string {
-	d := digesterPool.Get().(*digester)
-	sqlLen := len(sql)
-	d.lexer.reset(sql)
-	for {
-		tok, pos, lit := d.lexer.scan()
-		if tok == unicode.ReplacementChar && d.lexer.r.eof() {
-			break
-		}
-		if pos.Offset == sqlLen {
-			break
-		}
-		d.buffer.WriteRune(' ')
-		switch tok {
-		case intLit, stringLit, decLit, floatLit, bitLit, hexLit:
-			d.buffer.WriteRune('?')
-		default:
-			d.buffer.WriteString(lit)
+func TestDigestEqForSimpleSQL(t *testing.T) {
+	sqlGroups := [][]string{
+		{"select * from b where id = 1", "select * from b where id = '1'", "select * from b where id =2"},
+		{"select 2 from b, c where b.id =          c.id where c.id > 1", "select 4 from b, c where " +
+			"b.id = c.id where c.id > 23"},
+	}
+	for _, sqlGroup := range sqlGroups {
+		var d string
+		for _, sql := range sqlGroup {
+			dig := parser.Digest(sql)
+			if d == "" {
+				d = dig
+				continue
+			}
+			if d != dig {
+				t.Errorf("digest for %s's digest result %s not eq to previous %s", sql, d, dig)
+			}
 		}
 	}
-	result := md5.Sum(d.buffer.Bytes())
-	d.buffer.Reset()
-	digesterPool.Put(d)
-	return byte2str(result[:])
 }
 
-var digesterPool = sync.Pool{
-	New: func() interface{} {
-		return &digester{
-			lexer: NewScanner(""),
-		}
-	},
-}
-
-type digester struct {
-	buffer bytes.Buffer
-	lexer  *Scanner
-}
-
-func byte2str(b []byte) (s string) {
-	if len(b) == 0 {
-		return ""
+func TestDigestNotEqForSimpleSQL(t *testing.T) {
+	sqlGroups := [][]string{
+		{"select * from b where id = 1", "select a from b where id = 1", "select * from d where bid =1"},
 	}
-	pbytes := (*reflect.SliceHeader)(unsafe.Pointer(&b))
-	pstring := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	pstring.Data = pbytes.Data
-	pstring.Len = pbytes.Len
-	return
+	for _, sqlGroup := range sqlGroups {
+		var d string
+		for _, sql := range sqlGroup {
+			dig := parser.Digest(sql)
+			if d == "" {
+				d = dig
+				continue
+			}
+			if d == dig {
+				t.Errorf("digest for %s's digest result %s not eq to previous %s", sql, d, dig)
+			}
+		}
+	}
 }
